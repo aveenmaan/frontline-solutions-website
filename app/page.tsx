@@ -594,16 +594,21 @@ function Testimonials() {
 /* ── Contact ── */
 function Contact() {
   const [sent, setSent] = useState(false);
-  const [nextUrl, setNextUrl] = useState("");
+  const nextInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
-    const url = window.location.origin + window.location.pathname;
-    setNextUrl(url + "?submitted=true");
     if (window.location.search.includes("submitted=true")) {
       setSent(true);
-      window.history.replaceState({}, "", url);
+      window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
+
+  const handleSubmit = () => {
+    if (nextInputRef.current) {
+      nextInputRef.current.value =
+        window.location.origin + window.location.pathname + "?submitted=true";
+    }
+  };
 
   return (
     <section id="contact" className="relative py-28 overflow-hidden">
@@ -633,8 +638,9 @@ function Contact() {
               className="text-left space-y-4"
               action="https://formsubmit.co/frontline.solution.team@gmail.com"
               method="POST"
+              onSubmit={handleSubmit}
             >
-              <input type="hidden" name="_next" value={nextUrl} />
+              <input ref={nextInputRef} type="hidden" name="_next" value="" />
               <input type="hidden" name="_subject" value="New Demo Request from Website" />
               <input type="hidden" name="_captcha" value="false" />
               <input type="hidden" name="_template" value="table" />
