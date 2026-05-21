@@ -593,39 +593,17 @@ function Testimonials() {
 
 /* ── Contact ── */
 function Contact() {
-  const [fields, setFields] = useState({ name: "", phone: "", business: "", challenge: "" });
-  const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
+  const [nextUrl, setNextUrl] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("https://formsubmit.co/ajax/frontline.solution.team@gmail.com", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          Name: fields.name,
-          Phone: fields.phone,
-          "Business Type": fields.business,
-          Challenge: fields.challenge,
-          _subject: `New Demo Request from ${fields.name || "Website"}`,
-        }),
-      });
-      const data = await res.json();
-      if (data.success === "true" || data.success === true) {
-        setSent(true);
-      } else {
-        setError("Something went wrong. Please email us directly below.");
-      }
-    } catch {
-      setError("Something went wrong. Please email us directly below.");
-    } finally {
-      setLoading(false);
+  React.useEffect(() => {
+    const url = window.location.origin + window.location.pathname;
+    setNextUrl(url + "?submitted=true");
+    if (window.location.search.includes("submitted=true")) {
+      setSent(true);
+      window.history.replaceState({}, "", url);
     }
-  };
+  }, []);
 
   return (
     <section id="contact" className="relative py-28 overflow-hidden">
@@ -651,30 +629,36 @@ function Contact() {
               </p>
             </div>
           ) : (
-            <form className="text-left space-y-4" onSubmit={handleSubmit}>
+            <form
+              className="text-left space-y-4"
+              action="https://formsubmit.co/frontline.solution.team@gmail.com"
+              method="POST"
+            >
+              <input type="hidden" name="_next" value={nextUrl} />
+              <input type="hidden" name="_subject" value="New Demo Request from Website" />
+              <input type="hidden" name="_captcha" value="false" />
+              <input type="hidden" name="_template" value="table" />
+
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="name" className="block text-xs font-mono uppercase tracking-widest mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Your Name</label>
-                  <input id="name" type="text" placeholder="Jane Smith" className="form-input" value={fields.name} onChange={(e) => setFields(f => ({ ...f, name: e.target.value }))} required />
+                  <input id="name" name="Name" type="text" placeholder="Jane Smith" className="form-input" required />
                 </div>
                 <div>
                   <label htmlFor="phone" className="block text-xs font-mono uppercase tracking-widest mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Phone Number</label>
-                  <input id="phone" type="tel" placeholder="+1 (555) 000-0000" className="form-input" value={fields.phone} onChange={(e) => setFields(f => ({ ...f, phone: e.target.value }))} required />
+                  <input id="phone" name="Phone" type="tel" placeholder="+1 (555) 000-0000" className="form-input" required />
                 </div>
               </div>
               <div>
                 <label htmlFor="business" className="block text-xs font-mono uppercase tracking-widest mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Business Type</label>
-                <input id="business" type="text" placeholder="e.g. Hair Salon, Restaurant, Plumber..." className="form-input" value={fields.business} onChange={(e) => setFields(f => ({ ...f, business: e.target.value }))} required />
+                <input id="business" name="Business Type" type="text" placeholder="e.g. Hair Salon, Restaurant, Plumber..." className="form-input" required />
               </div>
               <div>
                 <label htmlFor="challenge" className="block text-xs font-mono uppercase tracking-widest mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>What&apos;s your biggest challenge?</label>
-                <textarea id="challenge" rows={3} placeholder="e.g. Missing calls after hours, too much time on the phone..." className="form-input resize-none" value={fields.challenge} onChange={(e) => setFields(f => ({ ...f, challenge: e.target.value }))} />
+                <textarea id="challenge" name="Challenge" rows={3} placeholder="e.g. Missing calls after hours, too much time on the phone..." className="form-input resize-none" />
               </div>
-              {error && (
-                <p className="text-center text-sm" style={{ color: "#f87171" }}>{error}</p>
-              )}
-              <button type="submit" disabled={loading} className="btn-primary w-full justify-center text-base" style={{ padding: "16px 32px", opacity: loading ? 0.7 : 1 }}>
-                {loading ? "Sending…" : <><span>Book My Free Demo</span> <Arrow size={16} /></>}
+              <button type="submit" className="btn-primary w-full justify-center text-base" style={{ padding: "16px 32px" }}>
+                Book My Free Demo <Arrow size={16} />
               </button>
               <p className="text-center text-xs font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>
                 No commitment. We&apos;ll respond within a few hours.
