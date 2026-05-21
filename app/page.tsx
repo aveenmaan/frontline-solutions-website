@@ -593,6 +593,40 @@ function Testimonials() {
 
 /* ── Contact ── */
 function Contact() {
+  const [fields, setFields] = useState({ name: "", phone: "", business: "", challenge: "" });
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("https://formsubmit.co/ajax/frontline.solution.team@gmail.com", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          Name: fields.name,
+          Phone: fields.phone,
+          "Business Type": fields.business,
+          Challenge: fields.challenge,
+          _subject: `New Demo Request from ${fields.name || "Website"}`,
+        }),
+      });
+      const data = await res.json();
+      if (data.success === "true" || data.success === true) {
+        setSent(true);
+      } else {
+        setError("Something went wrong. Please email us directly below.");
+      }
+    } catch {
+      setError("Something went wrong. Please email us directly below.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <section id="contact" className="relative py-28 overflow-hidden">
       <div className="ambient-teal"   style={{ width: 600, height: 600, top: -150, right: -200, opacity: 0.5 }} />
@@ -608,32 +642,61 @@ function Contact() {
             answer your questions, and give you a clear quote — no pressure, no obligation.
           </p>
 
-          <form className="text-left space-y-4" onSubmit={(e) => e.preventDefault()}>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="name" className="block text-xs font-mono uppercase tracking-widest mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Your Name</label>
-                <input id="name" type="text" placeholder="Jane Smith" className="form-input" />
+          {sent ? (
+            <div className="rounded-2xl py-12 px-8" style={{ background: "rgba(62,207,207,0.07)", border: "1px solid rgba(62,207,207,0.2)" }}>
+              <div className="text-4xl mb-4">✅</div>
+              <h3 className="text-xl font-bold text-white mb-2">Request Received!</h3>
+              <p className="text-sm" style={{ color: "rgba(232,234,246,0.6)", lineHeight: 1.7 }}>
+                Thanks for reaching out. We&apos;ll be in touch within a few hours to schedule your demo.
+              </p>
+            </div>
+          ) : (
+            <form className="text-left space-y-4" onSubmit={handleSubmit}>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="name" className="block text-xs font-mono uppercase tracking-widest mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Your Name</label>
+                  <input id="name" type="text" placeholder="Jane Smith" className="form-input" value={fields.name} onChange={(e) => setFields(f => ({ ...f, name: e.target.value }))} required />
+                </div>
+                <div>
+                  <label htmlFor="phone" className="block text-xs font-mono uppercase tracking-widest mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Phone Number</label>
+                  <input id="phone" type="tel" placeholder="+1 (555) 000-0000" className="form-input" value={fields.phone} onChange={(e) => setFields(f => ({ ...f, phone: e.target.value }))} required />
+                </div>
               </div>
               <div>
-                <label htmlFor="phone" className="block text-xs font-mono uppercase tracking-widest mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Phone Number</label>
-                <input id="phone" type="tel" placeholder="+1 (555) 000-0000" className="form-input" />
+                <label htmlFor="business" className="block text-xs font-mono uppercase tracking-widest mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Business Type</label>
+                <input id="business" type="text" placeholder="e.g. Hair Salon, Restaurant, Plumber..." className="form-input" value={fields.business} onChange={(e) => setFields(f => ({ ...f, business: e.target.value }))} required />
               </div>
-            </div>
-            <div>
-              <label htmlFor="business" className="block text-xs font-mono uppercase tracking-widest mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>Business Type</label>
-              <input id="business" type="text" placeholder="e.g. Hair Salon, Restaurant, Plumber..." className="form-input" />
-            </div>
-            <div>
-              <label htmlFor="challenge" className="block text-xs font-mono uppercase tracking-widest mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>What&apos;s your biggest challenge?</label>
-              <textarea id="challenge" rows={3} placeholder="e.g. Missing calls after hours, too much time on the phone..." className="form-input resize-none" />
-            </div>
-            <button type="submit" className="btn-primary w-full justify-center text-base" style={{ padding: "16px 32px" }}>
-              Book My Free Demo <Arrow size={16} />
-            </button>
-            <p className="text-center text-xs font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>
-              No commitment. We&apos;ll respond within a few hours.
-            </p>
-          </form>
+              <div>
+                <label htmlFor="challenge" className="block text-xs font-mono uppercase tracking-widest mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>What&apos;s your biggest challenge?</label>
+                <textarea id="challenge" rows={3} placeholder="e.g. Missing calls after hours, too much time on the phone..." className="form-input resize-none" value={fields.challenge} onChange={(e) => setFields(f => ({ ...f, challenge: e.target.value }))} />
+              </div>
+              {error && (
+                <p className="text-center text-sm" style={{ color: "#f87171" }}>{error}</p>
+              )}
+              <button type="submit" disabled={loading} className="btn-primary w-full justify-center text-base" style={{ padding: "16px 32px", opacity: loading ? 0.7 : 1 }}>
+                {loading ? "Sending…" : <><span>Book My Free Demo</span> <Arrow size={16} /></>}
+              </button>
+              <p className="text-center text-xs font-mono" style={{ color: "rgba(255,255,255,0.25)" }}>
+                No commitment. We&apos;ll respond within a few hours.
+              </p>
+            </form>
+          )}
+
+          {/* Direct email */}
+          <div className="mt-10 pt-8" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+            <p className="text-xs font-mono uppercase tracking-widest mb-4" style={{ color: "rgba(255,255,255,0.3)" }}>Or reach us directly</p>
+            <a
+              href="mailto:frontline.solution.team@gmail.com"
+              className="inline-flex items-center gap-3 rounded-xl px-6 py-3.5 transition-colors"
+              style={{ background: "rgba(62,207,207,0.07)", border: "1px solid rgba(62,207,207,0.18)", color: "var(--c-teal)" }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="M2 7l10 7 10-7" />
+              </svg>
+              <span className="font-mono text-sm">frontline.solution.team@gmail.com</span>
+            </a>
+          </div>
         </div>
       </div>
     </section>
@@ -654,7 +717,7 @@ function Footer() {
             <p className="text-sm mb-5 max-w-xs" style={{ color: "rgba(255,255,255,0.4)", lineHeight: 1.7 }}>
               Making advanced AI and automation simple and accessible for local businesses.
             </p>
-            <div className="flex gap-3">
+            <div className="flex gap-3 mb-5">
               <a href="#" aria-label="LinkedIn" className="social-link">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ color: "rgba(255,255,255,0.5)" }}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
               </a>
@@ -662,6 +725,12 @@ function Footer() {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ color: "rgba(255,255,255,0.5)" }}><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               </a>
             </div>
+            <a href="mailto:frontline.solution.team@gmail.com" className="inline-flex items-center gap-2 text-sm font-mono transition-colors" style={{ color: "var(--c-teal)" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2" /><path d="M2 7l10 7 10-7" />
+              </svg>
+              frontline.solution.team@gmail.com
+            </a>
           </div>
 
           <div>
